@@ -74,6 +74,8 @@ class Graph():
             start_y = (self.height // 2) - (stamp_h // 2)
 
             graph_mask[start_y : start_y + stamp_h, start_x : start_x + stamp_w] = (stamp_42 == 0)
+        else:
+            raise Exception("Graph too small for the central stamp!")
 
         return graph_mask
 
