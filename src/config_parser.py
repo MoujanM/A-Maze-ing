@@ -1,8 +1,8 @@
 
-from pydantic import BaseModel, Field, BeforeValidator, field_validator, ValidationError
-from abc import ABC, abstractmethod
+from pydantic import ValidationError
 from enum import Enum
 from typing import Any
+from maze.structs import MazeSpecs
 
 class Configs(Enum):
     WIDTH="WIDTH"
@@ -12,30 +12,13 @@ class Configs(Enum):
     OUTPUT_FILE="OUTPUT_FILE"
     PERFECT="PERFECT"
 
-class MazeSpecs(BaseModel, extra='allow'):
-    width: int = Field(ge=2, validation_alias='WIDTH')
-    height: int = Field(ge=2, validation_alias='HEIGHT')
-    entry_point: tuple[int, int] = Field(validation_alias='ENTRY')
-    exit_point: tuple[int, int] = Field(validation_alias='EXIT')
-    output_name: str = Field(min_length=4, pattern=".*\.txt$", validation_alias='OUTPUT_FILE')
-    perfect: bool = Field(default=False, validation_alias='PERFECT')
-
-    @field_validator('entry_point', 'exit_point', mode='before')
-    @classmethod
-    def int_tuple(cls, data: str) -> tuple[int, int]:
-        x, y = data.split(',', 1)
-        if int(x) < 0 or int(y) < 0:
-            raise ValueError("Coordinates must be positive")
-        else:
-            return (int(x), int(y))
-
 
 class ConfigError(Exception):
     """for custom parser error messages"""
     pass
 
 
-class ConfigParser(ABC):
+class ConfigParser():
 
     def read_txt(self, file_name: str) -> dict[str, Any]:
         """

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import random
-from maze.graph import Graph
-from maze.data import Wall
-from maze.exporter import Directions
+from src.graph import Graph
+from maze.structs import Wall, Directions
+
 
 class MazeGenerator(ABC):
 
@@ -14,8 +14,7 @@ class MazeGenerator(ABC):
 
 class KruskalGenerator(MazeGenerator):
 
-    def generate(self, graph: Graph, perfect: bool,
-                 entry: tuple[int, int], exit: tuple[int, int]) -> list[Wall]:
+    def generate(self, graph: Graph) -> list[Wall]:
         from maze.dsu import DSU
 
         walls = graph.walls
@@ -38,11 +37,11 @@ class KruskalGenerator(MazeGenerator):
         for wall in removed_walls:
             walls.remove(wall)
         
-        if not perfect:
-            extra = round(len(walls) * 0.05)
-            random.shuffle(walls)
-            for wall in walls[:extra]:
-                walls.remove(wall)
+        # if not perfect:
+        #     extra = round(len(walls) * 0.05)
+        #     random.shuffle(walls)
+        #     for wall in walls[:extra]:
+        #         walls.remove(wall)
 
         return walls
 

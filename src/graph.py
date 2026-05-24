@@ -1,6 +1,5 @@
 
-from maze.data import Wall, Cell
-from maze.config_parser import MazeSpecs
+from maze.structs import Wall, Cell, MazeSpecs
 import numpy as np
 
 class Graph():

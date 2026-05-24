@@ -1,16 +1,8 @@
 from typing import TypeVar
-from enum import Enum
+
 
 C = TypeVar('C')
 W = TypeVar('W')
-
-
-class Directions(Enum):
-    """Each direction stores dx, dy, and bit."""
-    NORTH = (0, -1, 0)
-    EAST = (1, 0, 1)
-    SOUTH = (0, 1, 2)
-    WEST = (-1, 0, 3)
 
 
 class Exporter:
