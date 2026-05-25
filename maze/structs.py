@@ -1,6 +1,6 @@
 
 from dataclasses import dataclass, field
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
 
@@ -21,13 +21,28 @@ class MazeSpecs(BaseModel, extra='allow'):
         else:
             return (int(x), int(y))
 
+    @model_validator(mode='after')
+    def check_exit_entry(self) -> 'MazeSpecs':
+        if self.entry_point == self.exit_point:
+            raise ValueError("Entry and Exit point must be different.")
+        
+        ex, ey = self.entry_point
+        if ex > self.width or ey > self.height:
+            raise ValueError(f"Entry point {self.entry_point} outside maze bounds.")
+        
+        ex, ey = self.exit_point
+        if ex > self.width or ey > self.height:
+            raise ValueError(f"Exit point {self.exit_point} outside maze bounds.")
+
+        return self
+
 
 class Directions(Enum):
     """Each direction stores dx, dy, and bit."""
     NORTH = (0, -1, 0)
-    EAST = (1, 0, 1)
-    SOUTH = (0, 1, 2)
-    WEST = (-1, 0, 3)
+    EAST = (1, 0, 2)
+    SOUTH = (0, 1, 4)
+    WEST = (-1, 0, 8)
 
 
 @dataclass(frozen=True)

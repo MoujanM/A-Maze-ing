@@ -1,20 +1,33 @@
 
 import sys
 import maze
+from src.graph import Graph
+from src.parser import ConfigParser
+from maze.generator import KruskalGenerator, WilsonGenerator
+from maze.exporter import Exporter
+from maze.bfs import BFS
 
-if len(sys.argv) == 2:
+def main():
+    if len(sys.argv) == 2:
     file_name = sys.argv[1]
     try:
-        input_config = maze.ConfigParser.read_txt(file_name)
-        maze_specs = maze.ConfigParser.validate_config(input_config)
+        input_config = ConfigParser.read_txt(file_name)
+        maze_specs = ConfigParser.validate_config(input_config)
+        graph = Graph(maze_specs)
+        if maze_specs.perfect:
+            generator = KruskalGenerator()
+        else:
+            generator = WilsonGenerator()
+        maze = genator.generate(graph)
+        maze_solver = BFS(graph, maze)
+        solution = maze_solver.solve_maze(maze_specs.entry_point, maze_specs.exit_point)
+        exporter = Exporter(graph, maze, solution, maze_specs)
+        exporter.write_to_file()
     except Exception as e:
         print(e)
         return 1
 
-    graph = maze.Graph(maze_specs)
-    maze = maze.KruskalGenerator(graph, maze_specs.perfect)
 
-    # Exporter.hex_export(graph.cells, maze)
 
     
 
