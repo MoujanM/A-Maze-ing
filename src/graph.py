@@ -2,9 +2,10 @@
 from maze.structs import Wall, Cell, MazeSpecs
 import numpy as np
 
+
 class Graph():
     """Given a height & width, get all possible walls and cells"""
-    
+
     def __init__(self, specs: MazeSpecs):
         self.width: int = specs.width
         self.height: int = specs.height
@@ -18,31 +19,29 @@ class Graph():
         cells = []
         for y in range(self.height):
             for x in range(self.width):
-                cell = Cell(x, y)
-
-                if blueprint[y, x] == False:
-                    cell.is_active = False
-                
+                cell = Cell(x, y, is_active=bool(blueprint[y, x]))
                 cells.append(cell)
         return cells
 
     def _inside_check(self, x: int, y: int) -> bool:
         # check to see if given coordinates within bounds of graph
         return 0 <= x < self.width and 0 <= y < self.height
-    
+
     def _build_walls(self) -> list[Wall]:
         """
         Walls connect two cells together.
         func only checks two directions to avoid dups.
-        """ 
+        """
         direction = [(1, 0), (0, 1)]
+        cell_lookup: dict[tuple[int, int], Cell] = ({(c.x, c.y): c for
+                                                     c in self.cells})
         walls = []
 
         for cell in self.cells:
             for dx, dy in direction:
                 nx, ny = cell.x + dx, cell.y + dy
                 if self._inside_check(nx, ny):
-                    neighbour_cell = Cell(nx, ny)
+                    neighbour_cell = cell_lookup[(nx, ny)]
                     if cell.is_active and neighbour_cell.is_active:
                         walls.append(Wall(cell, neighbour_cell))
         return walls
@@ -58,7 +57,7 @@ class Graph():
         four[0:2, 0] = 1
         four[2, :] = 1
         four[0:2, 2] = 1
-        two = np.zeros((5,3), dtype=int)
+        two = np.zeros((5, 3), dtype=int)
         two[[0, 2, 4], :] = 1
         two[1, 2] = 1
         two[3, 0] = 1
@@ -69,23 +68,12 @@ class Graph():
         stamp_w = stamp_42.shape[1]
 
         if self.height >= stamp_h * 2 + 2 and self.width >= stamp_w * 2 + 2:
-            start_x = (self.width // 2) - ( stamp_w // 2)
+            start_x = (self.width // 2) - (stamp_w // 2)
             start_y = (self.height // 2) - (stamp_h // 2)
 
-            graph_mask[start_y : start_y + stamp_h, start_x : start_x + stamp_w] = (stamp_42 == 0)
+            graph_mask[start_y: start_y + stamp_h,
+                       start_x: start_x + stamp_w] = (stamp_42 == 0)
         else:
             raise Exception("Graph too small for the central stamp!")
 
         return graph_mask
-
-
-
-
-            
-
-
-
-
-
-
-        

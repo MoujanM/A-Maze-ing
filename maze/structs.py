@@ -9,7 +9,8 @@ class MazeSpecs(BaseModel, extra='allow'):
     height: int = Field(ge=2, validation_alias='HEIGHT')
     entry_point: tuple[int, int] = Field(validation_alias='ENTRY')
     exit_point: tuple[int, int] = Field(validation_alias='EXIT')
-    output_name: str = Field(min_length=4, pattern=".*\.txt$", validation_alias='OUTPUT_FILE')
+    output_name: str = Field(min_length=4, pattern=r".*\.txt$",
+                             validation_alias='OUTPUT_FILE')
     perfect: bool = Field(default=False, validation_alias='PERFECT')
 
     @field_validator('entry_point', 'exit_point', mode='before')
@@ -27,11 +28,11 @@ class MazeSpecs(BaseModel, extra='allow'):
             raise ValueError("Entry and Exit point must be different.")
         
         ex, ey = self.entry_point
-        if ex > self.width or ey > self.height:
+        if ex >= self.width or ey >= self.height:
             raise ValueError(f"Entry point {self.entry_point} outside maze bounds.")
         
         ex, ey = self.exit_point
-        if ex > self.width or ey > self.height:
+        if ex >= self.width or ey >= self.height:
             raise ValueError(f"Exit point {self.exit_point} outside maze bounds.")
 
         return self
@@ -40,9 +41,9 @@ class MazeSpecs(BaseModel, extra='allow'):
 class Directions(Enum):
     """Each direction stores dx, dy, and bit."""
     NORTH = (0, -1, 0)
-    EAST = (1, 0, 2)
-    SOUTH = (0, 1, 4)
-    WEST = (-1, 0, 8)
+    EAST = (1, 0, 1)
+    SOUTH = (0, 1, 2)
+    WEST = (-1, 0, 3)
 
 
 @dataclass(frozen=True)
@@ -50,7 +51,8 @@ class Cell:
     """each cell is a dsu component"""
     x: int
     y: int
-    is_active: bool = field(default=True)
+    is_active: bool = field(default=True, compare=False, hash=False)
+
 
 @dataclass(frozen=True)
 class Wall:
@@ -58,14 +60,9 @@ class Wall:
     cell_a: Cell = field(compare=True)
     cell_b: Cell = field(compare=True)
 
-# check the following again
-# reasoning is Wall(cell_a, cell_b) == Wall(cell_b, cell_a)
-    # @classmethod
-    # def make(cls, a: Cell, b: Cell) -> cls:
-    #     if (b.x, b.y) < (a.x, a.y):
-    #         a, b = b, a
-    #     return cls(a, b)
-
-
-
-
+    def __post_init__(self) -> None:
+        # Check if they need to be swapped
+        if (self.cell_b.x, self.cell_b.y) < (self.cell_a.x, self.cell_a.y):
+            # Bypass frozen restriction to sort them in-place
+            object.__setattr__(self, 'cell_a', self.cell_b)
+            object.__setattr__(self, 'cell_b', self.cell_a)
