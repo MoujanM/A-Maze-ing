@@ -7,8 +7,8 @@ class Exporter:
 
     def __init__(self, graph: Graph, maze: list[Wall],
                  solution: list[Cell], specs: MazeSpecs) -> None:
-        self._dir_dict: dict[tuple[int, int], Directions] = ({(d.value[0],
-                                                               d.value[1]): d for d in Directions})
+        self._dir_dict: dict[tuple[int, int], Directions] = ({
+            (d.value[0], d.value[1]): d for d in Directions})
         self.all_cells: list[Cell] = graph.cells
         self.maze_walls: list[Wall] = maze
         self.solution_path: list[Cell] = solution
@@ -31,7 +31,7 @@ class Exporter:
 
         return c_bits
 
-    def _build_path_str(self) -> list[str]:
+    def _build_path_str(self) -> str:
         # compute path str from list
         path_str: list[str] = []
         for c_a, c_b in zip(self.solution_path, self.solution_path[1:]):
@@ -39,12 +39,13 @@ class Exporter:
             dy = c_b.y - c_a.y
             path_dir = self._dir_dict[(dx, dy)]
             path_str.append(path_dir.name[0])
-        return path_str
+        return ''.join(p for p in path_str)
 
-    def _build_grid(self) -> list[str]:
+    def _build_grid(self) -> str:
         # build list of output str from bitmask
         bitmask: dict[Cell, int] = self._build_bitmask()
-        lookup_dict: dict[tuple[int, int], int] = {(c.x, c.y): bit for c, bit in bitmask.items()}
+        lookup_dict: dict[tuple[int, int], int] = ({(c.x, c.y): bit for
+                                                    c, bit in bitmask.items()})
         max_x: int = max(x for x, y in lookup_dict)
         max_y: int = max(y for x, y in lookup_dict)
 
@@ -55,23 +56,21 @@ class Exporter:
                 row_str += format(lookup_dict[(x, y)], 'x')
                 if x == max_x:
                     string_lst.append(row_str)
-        return string_lst
+        return '\n'.join(string_lst)
 
     def write_to_file(self) -> None:
         # writes to output file
-        grid_str: list[str] = self._build_grid()
-        path_str: str = ''.join(p for p in self._build_path_str())
         entry: str = ','.join([str(self.entry_point[0]),
                                str(self.entry_point[1])])
         extry: str = ','.join([str(self.exit_point[0]),
                                str(self.exit_point[1])])
         try:
             with open(self.output_file, mode='x') as f:
-                f.write('\n'.join(grid_str))
+                f.write(self._build_grid())
                 f.write('\n\n')
                 f.write('\n'.join([entry, extry]))
                 f.write('\n')
-                f.write(path_str)
+                f.write(self._build_path_str())
                 f.write('\n')
         except (FileExistsError, Exception) as e:
             print(f"Error writing to output - {e}")

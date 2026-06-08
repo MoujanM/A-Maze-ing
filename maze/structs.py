@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
+from Typing import Optional
 
 
 class MazeSpecs(BaseModel, extra='allow'):
@@ -12,6 +13,7 @@ class MazeSpecs(BaseModel, extra='allow'):
     output_name: str = Field(min_length=4, pattern=r".*\.txt$",
                              validation_alias='OUTPUT_FILE')
     perfect: bool = Field(default=False, validation_alias='PERFECT')
+    seed: Optional[int] = Field(default=None, ge=1, validation_alias='SEED')
 
     @field_validator('entry_point', 'exit_point', mode='before')
     @classmethod
@@ -26,14 +28,16 @@ class MazeSpecs(BaseModel, extra='allow'):
     def check_exit_entry(self) -> 'MazeSpecs':
         if self.entry_point == self.exit_point:
             raise ValueError("Entry and Exit point must be different.")
-        
+
         ex, ey = self.entry_point
         if ex >= self.width or ey >= self.height:
-            raise ValueError(f"Entry point {self.entry_point} outside maze bounds.")
-        
+            raise ValueError(f"Entry point {self.entry_point} "
+                             f"outside maze bounds.")
+
         ex, ey = self.exit_point
         if ex >= self.width or ey >= self.height:
-            raise ValueError(f"Exit point {self.exit_point} outside maze bounds.")
+            raise ValueError(f"Exit point {self.exit_point} "
+                             f"outside maze bounds.")
 
         return self
 

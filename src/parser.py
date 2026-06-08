@@ -4,13 +4,14 @@ from enum import Enum
 from typing import Any
 from maze.structs import MazeSpecs
 
+
 class Configs(Enum):
-    WIDTH="WIDTH"
-    HEIGHT="HEIGHT"
-    ENTRY="ENTRY"
-    EXIT="EXIT"
-    OUTPUT_FILE="OUTPUT_FILE"
-    PERFECT="PERFECT"
+    WIDTH = "WIDTH"
+    HEIGHT = "HEIGHT"
+    ENTRY = "ENTRY"
+    EXIT = "EXIT"
+    OUTPUT_FILE = "OUTPUT_FILE"
+    PERFECT = "PERFECT"
 
 
 class ConfigError(Exception):
@@ -40,12 +41,10 @@ class ConfigParser():
         except Exception as e:
             raise ConfigError(f"Unknown error reading the file - {e}")
 
-    
-
     def validate_config(self, txt_config: dict[str, Any]) -> MazeSpecs:
         """
         Takes raw dict from read_text and validates the data
-        against BaseModel. 
+        against BaseModel.
         If validation successful, maze specs are returned
         Else, informative error message.
         """
@@ -64,7 +63,7 @@ class ConfigParser():
                 error_msgs = [err['msg'] for err in e.errors()]
                 complete_err = "\n".join(error_msgs)
                 raise ConfigError(f"Validation failed - {complete_err}")
-        
+
 
 # if __name__ == "__main__":
 #     file_name = "sample_config.txt"
@@ -73,4 +72,3 @@ class ConfigParser():
 #     new_config = ConfigParser.validate_config(my_test)
 #     print(type(new_config))
 #     print(new_config)
-

@@ -57,6 +57,6 @@ class BFS():
             solution.append(crumbs)
             crumbs = came_from.get(crumbs)
         solution.reverse()
-        print(f"Path length: {len(solution)}")
+        # print(f"Path length: {len(solution)}")
 
         return solution

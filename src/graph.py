@@ -9,6 +9,7 @@ class Graph():
     def __init__(self, specs: MazeSpecs):
         self.width: int = specs.width
         self.height: int = specs.height
+        self.graph_mask = np.ones((self.height, self.width), dtype=bool)
 
         self.blueprint: np.ndarray = self.easter_egg()
 
@@ -51,7 +52,6 @@ class Graph():
         Hard-coded grid masking of 42.
         to be placed in centre of graph if size allows.
         """
-        graph_mask = np.ones((self.height, self.width), dtype=bool)
 
         four = np.zeros((5, 3), dtype=int)
         four[0:2, 0] = 1
@@ -71,9 +71,11 @@ class Graph():
             start_x = (self.width // 2) - (stamp_w // 2)
             start_y = (self.height // 2) - (stamp_h // 2)
 
-            graph_mask[start_y: start_y + stamp_h,
-                       start_x: start_x + stamp_w] = (stamp_42 == 0)
-        else:
-            raise Exception("Graph too small for the central stamp!")
+            self.graph_mask[start_y: start_y + stamp_h,
+                            start_x: start_x + stamp_w] = (stamp_42 == 0)
 
-        return graph_mask
+        # question - where to raise exception/give error?
+        # else:
+        #     raise Exception("Graph too small for the central stamp!")
+
+        return self.graph_mask
