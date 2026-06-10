@@ -41,8 +41,8 @@ class Graph():
             for dx, dy in direction:
                 nx, ny = cell.x + dx, cell.y + dy
                 if self._inside_check(nx, ny):
-                    neighbour_cell = cell_lookup[(nx, ny)]
-                    if cell.is_active and neighbour_cell.is_active:
+                    neighbour_cell = cell_lookup.get(nx, ny)
+                    if neighbour_cell:
                         walls.append(Wall(cell, neighbour_cell))
         return walls
 
