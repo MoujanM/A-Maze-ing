@@ -19,6 +19,12 @@ def main():
                 generator = KruskalGenerator()
             else:
                 generator = WilsonGenerator()
+            
+            if not graph.easter_egg():
+                print("Dimensions too small for visualization")
+            
+            else:
+                run_ui()
             maze = generator.generate(graph)
             maze_solver = BFS(graph, maze)
             solution = maze_solver.solve_maze(maze_specs.entry_point,

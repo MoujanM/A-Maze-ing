@@ -10,17 +10,16 @@ class Graph():
         self.width: int = specs.width
         self.height: int = specs.height
         self.graph_mask = np.ones((self.height, self.width), dtype=bool)
+        self.go_visual: bool = self.easter_egg()
 
-        self.blueprint: np.ndarray = self.easter_egg()
-
-        self.cells: list[Cell] = self._build_cells(self.blueprint)
+        self.cells: list[Cell] = self._build_cells(self.graph_mask)
         self.walls: list[Wall] = self._build_walls()
 
-    def _build_cells(self, blueprint: np.ndarray) -> list[Cell]:
+    def _build_cells(self) -> list[Cell]:
         cells = []
         for y in range(self.height):
             for x in range(self.width):
-                cell = Cell(x, y, is_active=bool(blueprint[y, x]))
+                cell = Cell(x, y, is_active=bool(self.graph_mask[x, y]))
                 cells.append(cell)
         return cells
 
@@ -47,7 +46,7 @@ class Graph():
                         walls.append(Wall(cell, neighbour_cell))
         return walls
 
-    def easter_egg(self) -> np.ndarray:
+    def easter_egg(self) -> bool:
         """
         Hard-coded grid masking of 42.
         to be placed in centre of graph if size allows.
@@ -73,9 +72,6 @@ class Graph():
 
             self.graph_mask[start_y: start_y + stamp_h,
                             start_x: start_x + stamp_w] = (stamp_42 == 0)
-
-        # question - where to raise exception/give error?
-        # else:
-        #     raise Exception("Graph too small for the central stamp!")
-
-        return self.graph_mask
+            return True
+        else:
+            return False

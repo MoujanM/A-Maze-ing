@@ -54,7 +54,7 @@ class ConfigParser():
 
         if not required.issubset(provided):
             missing: set[str] = required - provided
-            raise ConfigError(f"Mandatory keys missing - {", ".join(missing)}")
+            raise ConfigError(f"Mandatory keys missing - {', '.join(missing)}")
         else:
             try:
                 valid_config = MazeSpecs(**txt_config)
