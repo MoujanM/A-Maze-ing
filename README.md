@@ -1,10 +1,12 @@
+*This project has been created as part of the 42 curriculum by mmirdama, brisnovs*
+
 # A-Maze-ing
 
 A sophisticated maze generator and solver that creates and navigates mazes using advanced graph algorithms. This project implements multiple maze generation algorithms and provides a modular, reusable architecture for maze-related operations.
 
 ## Description
 
-A-Maze-ing is a comprehensive Python-based maze generation and solving framework. It generates perfect or imperfect mazes of arbitrary dimensions and automatically solves them using graph traversal algorithms. The project demonstrates clean architecture principles with separation of concerns across multiple modules.
+A-Maze-ing is a Python-based maze generation and solving framework. It generates perfect or imperfect mazes of arbitrary dimensions and automatically solves them using graph traversal algorithms. The project demonstrates clean architecture principles with separation of concerns across multiple modules.
 
 ### Key Features
 

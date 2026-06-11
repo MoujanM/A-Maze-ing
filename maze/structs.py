@@ -2,7 +2,6 @@
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
-from Typing import Optional
 
 
 class MazeSpecs(BaseModel, extra='allow'):
@@ -13,7 +12,7 @@ class MazeSpecs(BaseModel, extra='allow'):
     output_name: str = Field(min_length=4, pattern=r".*\.txt$",
                              validation_alias='OUTPUT_FILE')
     perfect: bool = Field(default=False, validation_alias='PERFECT')
-    seed: Optional[int] = Field(default=None, ge=1, validation_alias='SEED')
+    seed: int | None = Field(default=None, ge=1, validation_alias='SEED')
 
     @field_validator('entry_point', 'exit_point', mode='before')
     @classmethod
@@ -63,10 +62,20 @@ class Wall:
     """remembers which 2 cells it connects"""
     cell_a: Cell = field(compare=True)
     cell_b: Cell = field(compare=True)
+    is_boundary: bool = field(default=False, compare=False)
 
+    # def __post_init__(self) -> None:
+    #     # Check if they need to be swapped
+    #     if (self.cell_b.x, self.cell_b.y) < (self.cell_a.x, self.cell_a.y):
+    #         # Bypass frozen restriction to sort them in-place
+    #         object.__setattr__(self, 'cell_a', self.cell_b)
+    #         object.__setattr__(self, 'cell_b', self.cell_a)
     def __post_init__(self) -> None:
         # Check if they need to be swapped
         if (self.cell_b.x, self.cell_b.y) < (self.cell_a.x, self.cell_a.y):
+            # Store the original cell_a safely
+            temp_a = self.cell_a
+
             # Bypass frozen restriction to sort them in-place
             object.__setattr__(self, 'cell_a', self.cell_b)
-            object.__setattr__(self, 'cell_b', self.cell_a)
+            object.__setattr__(self, 'cell_b', temp_a)

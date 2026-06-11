@@ -1,7 +1,7 @@
 
 import pytest
 
-from src.graph import Graph
+from maze.graph import Graph
 from maze.structs import Wall, Cell, MazeSpecs
 
 @pytest.fixture

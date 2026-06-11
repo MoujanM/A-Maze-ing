@@ -1,10 +1,11 @@
 
 import sys
-from src.graph import Graph
+from maze.graph import Graph
 from src.parser import ConfigParser
 from maze.generator import KruskalGenerator, WilsonGenerator
-from maze.exporter import Exporter
+from src.exporter import Exporter
 from maze.bfs import BFS
+from src.ui import run_ui
 
 
 def main():
@@ -19,21 +20,22 @@ def main():
                 generator = KruskalGenerator()
             else:
                 generator = WilsonGenerator()
-            
-            if not graph.easter_egg():
-                print("Dimensions too small for visualization")
-            
+
+            if graph._graph_mask.all():
+                print("Too small!")
+                maze = generator.generate(graph)
+                maze_solver = BFS(graph, maze)
+                solution = maze_solver.solve_maze(maze_specs.entry_point,
+                                                  maze_specs.exit_point)
+                exporter = Exporter(graph.cell_lookup, maze,
+                                    solution, maze_specs)
+                exporter.write_to_file()
+
             else:
-                run_ui()
-            maze = generator.generate(graph)
-            maze_solver = BFS(graph, maze)
-            solution = maze_solver.solve_maze(maze_specs.entry_point,
-                                              maze_specs.exit_point)
-            exporter = Exporter(graph, maze, solution, maze_specs)
-            exporter.write_to_file()
+                run_ui(maze_specs, graph, generator)
+
         except Exception as e:
             print(e)
-            return 1
 
 
 main()

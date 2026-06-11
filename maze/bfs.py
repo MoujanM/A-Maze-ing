@@ -1,13 +1,15 @@
 
 from collections import deque
 from maze.structs import Cell, Wall
-from src.graph import Graph
+from maze.graph import Graph
 
 
 class BFS():
     def __init__(self, graph: Graph, maze: list[Wall]) -> None:
-        self.all_cells: list[Cell] = graph.cells
+
         self.all_walls: list[Wall] = graph.walls
+        self.cell_lookup: dict[tuple[int, int], Cell] = graph.cell_lookup
+        self.all_cells: list[Cell] = list(self.cell_lookup.values())
         self.maze = maze
         self.adj_map = self._build_adj()
 
@@ -24,11 +26,9 @@ class BFS():
     def solve_maze(self, entry_point: tuple[int, int],
                    exit_point: tuple[int, int]) -> list[Cell]:
         # actual BFS implementation
-        cell_lookup: dict[tuple[int, int], Cell] = ({(c.x, c.y): c for
-                                                     c in self.all_cells})
 
-        entry_cell: Cell | None = cell_lookup.get(entry_point)
-        exit_cell: Cell | None = cell_lookup.get(exit_point)
+        entry_cell: Cell | None = self.cell_lookup.get(entry_point)
+        exit_cell: Cell | None = self.cell_lookup.get(exit_point)
 
         if entry_cell is None or exit_cell is None:
             raise Exception("Entry/Exit point not found")

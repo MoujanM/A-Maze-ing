@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import random
-from src.graph import Graph
+from maze.graph import Graph
 from maze.structs import Wall, Cell
 
 
@@ -21,10 +21,14 @@ class KruskalGenerator(MazeGenerator):
         active_cells: list[Cell] = [c for c in graph.cells if c.is_active]
         dsu = DSU(active_cells)
 
-        removed_walls: list[Wall] = []
-        random.shuffle(maze_walls)
+        removable_walls: list[Wall] = [w for w in maze_walls
+                                       if w.cell_a.is_active and
+                                       w.cell_b.is_active]
 
-        for wall in maze_walls:
+        removed_walls: list[Wall] = []
+        random.shuffle(removable_walls)
+
+        for wall in removable_walls:
             if not dsu.connected(wall.cell_a, wall.cell_b):
                 root_a = dsu.find(wall.cell_a)
                 root_b = dsu.find(wall.cell_b)
@@ -34,11 +38,6 @@ class KruskalGenerator(MazeGenerator):
 
         for wall in removed_walls:
             maze_walls.remove(wall)
-        # if not perfect:
-        #     extra = round(len(walls) * 0.05)
-        #     random.shuffle(walls)
-        #     for wall in walls[:extra]:
-        #         walls.remove(wall)
 
         return maze_walls
 
@@ -78,9 +77,9 @@ class WilsonGenerator(MazeGenerator):
 
     def generate(self, graph: Graph) -> list[Wall]:
 
-        active_cells: list[Cell] = [c for c in graph.cells if c.is_active]
-        cell_lookup: dict[tuple[int, int], Cell] = ({(c.x, c.y): c for
-                                                     c in active_cells})
+        lookup_dict: dict[tuple[int, int], Cell] = graph.cell_lookup
+        active_cells: list[Cell] = [c for c in graph.cell_lookup.values()
+                                    if c.is_active]
         visited_cells: set[Cell] = set()
         walls_set: set[Wall] = set(graph.walls.copy())
         seed: Cell = random.choice(active_cells)
@@ -91,7 +90,8 @@ class WilsonGenerator(MazeGenerator):
                                             if c not in visited_cells])
             start: Cell = random.choice(unvisited_cells)
 
-            walk_path = self._random_walk(start, cell_lookup, visited_cells)
+            walk_path = self._random_walk(start, lookup_dict,
+                                          visited_cells)
 
             visited_cells.update(walk_path)
 

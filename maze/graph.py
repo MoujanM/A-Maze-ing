@@ -9,17 +9,19 @@ class Graph():
     def __init__(self, specs: MazeSpecs):
         self.width: int = specs.width
         self.height: int = specs.height
-        self.graph_mask = np.ones((self.height, self.width), dtype=bool)
-        self.go_visual: bool = self.easter_egg()
+        self._graph_mask = self.easter_egg()
+        # in ui we can check if all are active or not
 
-        self.cells: list[Cell] = self._build_cells(self.graph_mask)
+        self.cells: list[Cell] = self._build_cells()
+        self.cell_lookup: dict[tuple[int, int], Cell] = ({(c.x, c.y): c for
+                                                          c in self.cells})
         self.walls: list[Wall] = self._build_walls()
 
     def _build_cells(self) -> list[Cell]:
         cells = []
         for y in range(self.height):
             for x in range(self.width):
-                cell = Cell(x, y, is_active=bool(self.graph_mask[x, y]))
+                cell = Cell(x, y, is_active=bool(self._graph_mask[y, x]))
                 cells.append(cell)
         return cells
 
@@ -33,29 +35,33 @@ class Graph():
         func only checks two directions to avoid dups.
         """
         direction = [(1, 0), (0, 1)]
-        cell_lookup: dict[tuple[int, int], Cell] = ({(c.x, c.y): c for
-                                                     c in self.cells})
         walls = []
 
         for cell in self.cells:
             for dx, dy in direction:
                 nx, ny = cell.x + dx, cell.y + dy
                 if self._inside_check(nx, ny):
-                    neighbour_cell = cell_lookup.get(nx, ny)
-                    if neighbour_cell:
-                        walls.append(Wall(cell, neighbour_cell))
+                    neighbour_cell = self.cell_lookup[(nx, ny)]
+                    if cell.is_active or neighbour_cell.is_active:
+                        boundary: bool = not (cell.is_active and
+                                              neighbour_cell.is_active)
+                        walls.append(Wall(cell, neighbour_cell,
+                                          is_boundary=boundary))
+
         return walls
 
-    def easter_egg(self) -> bool:
+    def easter_egg(self) -> np.ndarray:
         """
-        Hard-coded grid masking of 42.
-        to be placed in centre of graph if size allows.
+        function returns a graph-mask; marking active/inactive cells.
+        if the size allows, the graph-mask includes the central stamp.
+        else it returns graph with all active cells.
         """
 
+        graph_mask: np.ndarray = np.ones((self.height, self.width), dtype=bool)
         four = np.zeros((5, 3), dtype=int)
         four[0:2, 0] = 1
         four[2, :] = 1
-        four[0:2, 2] = 1
+        four[:, 2] = 1
         two = np.zeros((5, 3), dtype=int)
         two[[0, 2, 4], :] = 1
         two[1, 2] = 1
@@ -70,8 +76,7 @@ class Graph():
             start_x = (self.width // 2) - (stamp_w // 2)
             start_y = (self.height // 2) - (stamp_h // 2)
 
-            self.graph_mask[start_y: start_y + stamp_h,
-                            start_x: start_x + stamp_w] = (stamp_42 == 0)
-            return True
-        else:
-            return False
+            graph_mask[start_y: start_y + stamp_h,
+                       start_x: start_x + stamp_w] = (stamp_42 == 0)
+
+        return graph_mask
