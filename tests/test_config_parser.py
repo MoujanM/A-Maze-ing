@@ -1,7 +1,7 @@
 
 import pytest
 from src.config_parser import ConfigError, ConfigParser
-from maze.structs import MazeSpecs
+from mazegen.structs import MazeSpecs
 
 @pytest.fixture
 def parser():

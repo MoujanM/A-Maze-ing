@@ -3,13 +3,11 @@ import os
 from src.renderer import MazeRenderer
 from src.themes import DEFAULT_THEME, NEON_THEME, DARK_THEME
 
-from maze.structs import MazeSpecs, Cell
-from src.path_convertor import path_to_coords
+from mazegen.structs import MazeSpecs, Cell
 
-from maze.graph import Graph
-from maze.generator import MazeGenerator
+from mazegen.graph import Graph
+from mazegen.generator import MazeGenerator
 from src.exporter import Exporter
-from maze.bfs import BFS
 
 
 def clear_screen() -> None:
@@ -19,35 +17,32 @@ def clear_screen() -> None:
 
 def generate_maze(
     specs: MazeSpecs,
-    graph: Graph,
+    # graph: Graph,
     generator: MazeGenerator,
 ) -> tuple[list[list[int]], list[tuple[int, int]], list[Cell]]:
 
-    entry = specs.entry_point
-    exit_ = specs.exit_point
-
-    maze_raw = generator.generate(graph)
-    solver = BFS(graph, maze_raw)
-    path_raw = solver.solve_maze(entry, exit_)
+    generator._execute()
+    maze_raw = generator.maze_structure
+    path_raw = generator.solution
+    graph: Graph = generator._graph
 
     exporter = Exporter(graph.cell_lookup, maze_raw, path_raw, specs)
     exporter.write_to_file()
 
-    maze = exporter.maze_grid
-    path = path_to_coords(entry, exporter.path_str)  # Isnt this useless?
-    # take path raw and make a look up dict
+    maze = exporter._maze_grid
+    path = [(c.x, c.y) for c in path_raw]
     cells = graph.cells.copy()
 
     return maze, path, cells
 
 
-def run_ui(specs: MazeSpecs, graph: Graph, generator: MazeGenerator) -> None:
+def run_ui(specs: MazeSpecs, generator: MazeGenerator) -> None:
     """Run terminal UI."""
 
     entry = specs.entry_point
     exit_ = specs.exit_point
 
-    maze, path, cells = generate_maze(specs, graph, generator)
+    maze, path, cells = generate_maze(specs, generator)
 
     show_path = True
     theme = DEFAULT_THEME
@@ -85,7 +80,7 @@ def run_ui(specs: MazeSpecs, graph: Graph, generator: MazeGenerator) -> None:
             if specs.seed:
                 show_path = True
             else:
-                maze, path, cells = generate_maze(specs, graph, generator)
+                maze, path, cells = generate_maze(specs, generator)
                 show_path = True
 
         elif command == "t":

@@ -71,11 +71,7 @@ class Wall:
     #         object.__setattr__(self, 'cell_a', self.cell_b)
     #         object.__setattr__(self, 'cell_b', self.cell_a)
     def __post_init__(self) -> None:
-        # Check if they need to be swapped
         if (self.cell_b.x, self.cell_b.y) < (self.cell_a.x, self.cell_a.y):
-            # Store the original cell_a safely
-            temp_a = self.cell_a
-
-            # Bypass frozen restriction to sort them in-place
+            old_a = self.cell_a
             object.__setattr__(self, 'cell_a', self.cell_b)
-            object.__setattr__(self, 'cell_b', temp_a)
+            object.__setattr__(self, 'cell_b', old_a)

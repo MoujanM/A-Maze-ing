@@ -1,8 +1,8 @@
 
 import pytest
 
-from maze.graph import Graph
-from maze.structs import Wall, Cell, MazeSpecs
+from mazegen.graph import Graph
+from mazegen.structs import Wall, Cell, MazeSpecs
 
 @pytest.fixture
 def test_maze():

@@ -32,11 +32,10 @@ clean:
 
 clean-venv: clean
 	@echo "Removing virtual env directory"
-	$(VENV)/bin/deactivate
 	rm -rf $(VENV)
 
 lint:
 	@echo "Checking flake8 ..."
-	$(VENV)/bin/flake8 src/ maze/ $(SCRIPT)
+	$(VENV)/bin/flake8 src/ mazegen/ $(SCRIPT)
 	@echo "Checking mypy ..."
-	$(VENV)/bin/mypy src/ maze/ $(SCRIPT) --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	$(VENV)/bin/mypy src/ mazegen/ $(SCRIPT) --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

@@ -1,7 +1,7 @@
 
 from collections import deque
-from maze.structs import Cell, Wall
-from maze.graph import Graph
+from mazegen.structs import Cell, Wall
+from mazegen.graph import Graph
 
 
 class BFS():
@@ -27,12 +27,11 @@ class BFS():
                    exit_point: tuple[int, int]) -> list[Cell]:
         # actual BFS implementation
 
-        entry_cell: Cell | None = self.cell_lookup.get(entry_point)
-        exit_cell: Cell | None = self.cell_lookup.get(exit_point)
+        entry_cell: Cell = self.cell_lookup[entry_point]
+        exit_cell: Cell = self.cell_lookup[exit_point]
 
-        if entry_cell is None or exit_cell is None:
-            raise Exception("Entry/Exit point not found")
-            exit
+        # if entry_cell is None or exit_cell is None:
+        #     raise Exception("Entry/Exit point not found")
 
         visited: set[Cell] = {entry_cell}
         came_from: dict[Cell, Cell | None] = {entry_cell: None}

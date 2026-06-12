@@ -1,9 +1,10 @@
 # sample config for test
 
 
-WIDTH=30
-HEIGHT=30
+WIDTH=20
+HEIGHT=20
 ENTRY=1,3
-EXIT=25,18
+EXIT=11,14
 OUTPUT_FILE=maze.txt
-PERFECT=True
+PERFECT=False
+SEED=42

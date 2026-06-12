@@ -28,7 +28,7 @@ DEFAULT_THEME = Theme(
     EXIT="\033[31m",   # red
     PATH="\033[36m",   # cyan
     EMPTY=" ",
-    INACTIVE="\033[37m",
+    INACTIVE="\033[32m",
 )
 
 NEON_THEME = Theme(
@@ -38,7 +38,7 @@ NEON_THEME = Theme(
     EXIT="\033[91m",   # bright red
     PATH="\033[96m",   # bright cyan
     EMPTY="·",
-    INACTIVE="\033[35m",
+    INACTIVE="\033[32m",
 )
 
 DARK_THEME = Theme(
@@ -48,5 +48,5 @@ DARK_THEME = Theme(
     EXIT="\033[31m",   # red
     PATH="\033[34m",   # blue
     EMPTY=" ",
-    INACTIVE="\033[90m",
+    INACTIVE="\033[32m",
 )

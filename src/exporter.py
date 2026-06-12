@@ -1,5 +1,6 @@
 
-from maze.structs import Directions, Cell, Wall, MazeSpecs
+from mazegen.structs import Directions, Cell, Wall, MazeSpecs
+from typing import Iterator
 
 
 class Exporter:
@@ -17,20 +18,12 @@ class Exporter:
         self.solution_path: list[Cell] = solution
         self.entry_point: tuple[int, int] = specs.entry_point
         self.exit_point: tuple[int, int] = specs.exit_point
-        self.path_str: str = self._build_path_str()
         self.output_file: str = specs.output_name
 
-        self.maze_hex: str = self._build_grid()
-        self.maze_grid: list[list[int]] = self._build_grid_matrix()
+        self._bitmask: dict[Cell, int] = self._build_bitmask()
+        self._maze_grid: list[list[int]] = self._build_grid_matrix()
 
-    def _build_grid_matrix(self) -> list[list[int]]:
-        bitmask = self._build_bitmask()
-        lookup = {(c.x, c.y): bit for c, bit in bitmask.items()}
-        max_x = max(x for x, y in lookup)
-        max_y = max(y for x, y in lookup)
-        grid = [[lookup[(x, y)] for x in range(max_x + 1)] for y in range(max_y + 1)]
-
-        return grid
+        self.path_str: str = self._build_path_str()
 
     def _build_bitmask(self) -> dict[Cell, int]:
 
@@ -56,6 +49,22 @@ class Exporter:
 
         return c_bits
 
+    def _build_grid_matrix(self) -> list[list[int]]:
+        lookup = {(c.x, c.y): bit for c, bit in self._bitmask.items()}
+        max_x = max(x for x, y in lookup)
+        max_y = max(y for x, y in lookup)
+        grid = [
+            [lookup[(x, y)] for x in range(max_x + 1)]
+            for y in range(max_y + 1)
+        ]
+
+        return grid
+
+    def _grid_rows(self) -> Iterator[str]:
+        """Yield hex rows (strings) from the precomputed matrix."""
+        for row in self._maze_grid:
+            yield ''.join(format(v, 'x') for v in row)
+
     def _build_path_str(self) -> str:
         # compute path str from list
         path_str: list[str] = []
@@ -64,38 +73,22 @@ class Exporter:
             dy = c_b.y - c_a.y
             path_dir = self._DIR_DICT[(dx, dy)]
             path_str.append(path_dir.name[0])
-        return ''.join(p for p in path_str)
-
-    def _build_grid(self) -> str:
-        # build list of output str from bitmask
-        bitmask: dict[Cell, int] = self._build_bitmask()
-        lookup_dict: dict[tuple[int, int], int] = ({(c.x, c.y): bit for
-                                                    c, bit in bitmask.items()})
-        max_x: int = max(x for x, y in lookup_dict)
-        max_y: int = max(y for x, y in lookup_dict)
-
-        string_lst: list[str] = []
-        for y in range(max_y + 1):
-            row_str: str = ""
-            for x in range(max_x + 1):
-                row_str += format(lookup_dict[(x, y)], 'x')
-                if x == max_x:
-                    string_lst.append(row_str)
-        return '\n'.join(string_lst)
+        return ''.join(path_str)
 
     def write_to_file(self) -> None:
         # writes to output file
-        entry: str = ','.join([str(self.entry_point[0]),
-                               str(self.entry_point[1])])
-        extry: str = ','.join([str(self.exit_point[0]),
-                               str(self.exit_point[1])])
+        entry_str: str = ','.join([str(self.entry_point[0]),
+                                   str(self.entry_point[1])])
+        extit_str: str = ','.join([str(self.exit_point[0]),
+                                   str(self.exit_point[1])])
         try:
-            with open(self.output_file, mode='x') as f:
-                f.write(self._build_grid())
+            with open(self.output_file, mode='w') as f:
+                for row in self._grid_rows():
+                    f.write(row + '\n')
                 f.write('\n\n')
-                f.write('\n'.join([entry, extry]))
+                f.write('\n'.join([entry_str, extit_str]))
                 f.write('\n')
-                f.write(self._build_path_str())
+                f.write(self.path_str)
                 f.write('\n')
         except Exception as e:
             print(f"Error writing to output - {e}")

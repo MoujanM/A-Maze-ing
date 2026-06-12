@@ -1,21 +1,20 @@
 from abc import ABC, abstractmethod
 import random
-from maze.graph import Graph
-from maze.structs import Wall, Cell
+from mazegen.structs import Wall, Cell, Directions
+from mazegen.graph import Graph
 
 
-class MazeGenerator(ABC):
+class AlgorithmStrategy(ABC):
 
     @abstractmethod
     def generate(self, graph: Graph) -> list[Wall]:
-        # algorithm implementation goes here
         pass
 
 
-class KruskalGenerator(MazeGenerator):
+class KruskalGenerator(AlgorithmStrategy):
 
     def generate(self, graph: Graph) -> list[Wall]:
-        from maze.dsu import DSU
+        from mazegen.dsu import DSU
 
         maze_walls: list[Wall] = graph.walls.copy()
         active_cells: list[Cell] = [c for c in graph.cells if c.is_active]
@@ -42,20 +41,24 @@ class KruskalGenerator(MazeGenerator):
         return maze_walls
 
 
-class WilsonGenerator(MazeGenerator):
+class WilsonGenerator(AlgorithmStrategy):
 
     def _random_walk(self, start: Cell,
                      lookup_dict: dict[tuple[int, int], Cell],
                      visited: set[Cell]) -> list[Cell]:
         walk_path: list[Cell] = [start]
-        direction: list[tuple[int, int]] = [(1, 0), (0, 1)]
+        direction: list[tuple[int, int]] = [(d.value[0], d.value[1]) for
+                                            d in Directions]
 
         while start not in visited:
             valid_neighbours: list[Cell] = []
             for dx, dy in direction:
-                if (start.x + dx, start.y + dy) in lookup_dict:
-                    valid_neighbours.append(lookup_dict[start.x + dx,
-                                                        start.y + dy])
+                coords: tuple[int, int] = (start.x + dx, start.y + dy)
+                if coords in lookup_dict:
+                    next_door: Cell = lookup_dict[coords]
+                    if next_door.is_active:
+                        valid_neighbours.append(lookup_dict[start.x + dx,
+                                                start.y + dy])
             if not valid_neighbours:
                 break
             neighbour = random.choice(valid_neighbours)

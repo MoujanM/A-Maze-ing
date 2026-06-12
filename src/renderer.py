@@ -3,14 +3,15 @@ import sys
 import os
 import shutil
 
-from typing import List, Tuple, Optional, Set, Iterable
-from src.themes import Theme, DEFAULT_THEME, NEON_THEME, DARK_THEME
-from maze.structs import Cell
+from typing import List, Tuple, Optional, Set
+from src.themes import Theme, DEFAULT_THEME
+from mazegen.structs import Cell
 
 NORTH = 1
 EAST = 2
 SOUTH = 4
 WEST = 8
+
 
 class MazeRenderer:
     """ASCII maze renderer with path 'draw-in' animation"""
@@ -18,13 +19,11 @@ class MazeRenderer:
     def __init__(
         self,
         maze: List[List[int]],
-        cells: list[Cell],
+        cells: List[Cell],
         entry: Tuple[int, int],
         exit_: Tuple[int, int],
-        path: Optional[Iterable[Tuple[int, int]]] = None,
+        path: Optional[List[Tuple[int, int]]] = None,
         theme: Theme = DEFAULT_THEME,
-        frame_delay: float = 0.05,
-        clear_before: bool = False,
     ) -> None:
         self.maze = maze
         self.cells = cells
@@ -32,8 +31,7 @@ class MazeRenderer:
         self.exit = exit_
         self.path = path
         self.theme = theme
-        self.frame_delay = frame_delay
-        self.clear_before = clear_before
+        self.cell_lookup = {(c.x, c.y): c for c in self.cells}
 
     def _build_static_lines(
             self, reveal_path: Optional[Set[Tuple[int, int]]] = None
@@ -45,27 +43,30 @@ class MazeRenderer:
         width = len(self.maze[0])
         output: list[str] = []
 
-        cell_lookup = {(c.x, c.y): c for c in self.cells}
-
         top = f"{self.theme.WALL}+"
         for x in range(width):
             if self.maze[0][x] & NORTH:
-                top += "   +"
-            else:
                 top += "---+"
+            else:
+                top += "   +"
         output.append(top)
 
         for y in range(height):
-            middle = f"{self.theme.WALL}|"
+
+            if self.maze[y][0] & WEST:
+                middle = f"{self.theme.WALL}|"
+            else:
+                middle = " "
             bottom = f"{self.theme.WALL}+"
+
             for x in range(width):
                 cell = self.maze[y][x]
 
-                cobj = cell_lookup.get((x, y))
-                is_active = True if cobj is None else bool(cobj.is_active)
+                cobj = self.cell_lookup.get((x, y))
+                is_active = bool(cobj and cobj.is_active)
 
                 if not is_active:
-                    content = f"{self.theme.INACTIVE}X{self.theme.RESET}"
+                    content = f"{self.theme.INACTIVE}0{self.theme.RESET}"
                 else:
                     content = " "
                     if (x, y) == self.entry:
@@ -76,20 +77,16 @@ class MazeRenderer:
                         content = f"{self.theme.PATH}X{self.theme.RESET}"
 
                 if cell & EAST:
-                    middle += f" {content} {self.theme.WALL}|{self.theme.RESET}"
+                    middle += (
+                        f" {content} {self.theme.WALL}|{self.theme.RESET}"
+                    )
                 else:
-                    if x == width - 1:
-                        middle += f" {content} {self.theme.WALL}|{self.theme.RESET}"
-                    else:
-                        middle += f" {content}  "
+                    middle += f" {content}  "
 
                 if cell & SOUTH:
                     bottom += "---+"
                 else:
-                    if y == height - 1:
-                        bottom += "---+"
-                    else:
-                        bottom += "   +"
+                    bottom += "   +"
 
             output.append(middle)
             output.append(bottom)
@@ -97,94 +94,73 @@ class MazeRenderer:
         output.append(self.theme.RESET)
         return output
 
-    def _required_size(self) -> Tuple[int, int]:
-        """Return (cols, rows) required to render the maze fully."""
-        height = len(self.maze)
+    def _required_size(self) -> int:
+        """Return required terminal columns to render the maze fully."""
         width = len(self.maze[0])
-        cols = 0
-        # top border: each cell contributes 4 chars plus final "+"
+        # top border: starting '+' plus 4 chars per cell
         cols = 1 + width * 4
-        # each content line same width
-        rows = 1 + height * 2  # top border + (middle+bottom) per row
-        # +1 for trailing RESET line if any
-        rows += 1
-        return cols, rows
+        return cols
 
     def _supports_cursor(self) -> bool:
-        return sys.stdout.isatty()
+        """Return whether output is on actual TTY and
+        whether TTY can support cursor/clear ANSI animation."""
+        if not sys.stdout.isatty():
+            return False
+        term = os.getenv("TERM", "")
+        if term == "" or term.lower() == "dumb":
+            return False
+        return True
 
-    def render(self) -> str:
-        """Render maze. Print/animate frames to stdout;
-        return final maze string."""
+    def render(self) -> None:
+        """Render maze. Print/animate frames to stdout; no return value."""
         if not self.maze or not self.maze[0]:
             out = "Empty maze"
             sys.stdout.write(out + "\n")
             sys.stdout.flush()
-            return out
+            return
 
         # If path is None -> never reveal path; print static maze
         if self.path is None:
             final = "\n".join(self._build_static_lines(reveal_path=set()))
             sys.stdout.write(final + "\n")
             sys.stdout.flush()
-            return final
+            return
 
-        # If path is a set -> static full path (print once)
-        if isinstance(self.path, set):
-            final = "\n".join(self._build_static_lines(reveal_path=self.path))
-            sys.stdout.write(final + "\n")
-            sys.stdout.flush()
-            return final
-
-        # Try to coerce to sequence for animation
-        try:
-            seq = list(self.path)
-        except Exception:
-            final = "\n".join(self._build_static_lines(reveal_path=set()))
-            sys.stdout.write(final + "\n")
-            sys.stdout.flush()
-            return final
-
-        # If terminal doesn't support cursor ops, fallback to static final path (print once)
+        # If terminal doesn't support cursor ops fallback to static final path
         supports_cursor = self._supports_cursor()
         if not supports_cursor:
-            final = "\n".join(self._build_static_lines(reveal_path=set(seq)))
+            final = "\n".join(
+                self._build_static_lines(reveal_path=set(self.path))
+            )
             sys.stdout.write(final + "\n")
             sys.stdout.flush()
-            return final
+            return
 
-        # Check terminal size before drawing
-        req_cols, req_rows = self._required_size()
-        term = shutil.get_terminal_size(fallback=(80, 24))
-        if term.columns < req_cols or term.lines < req_rows:
-            msg = (
-                f"Terminal too small: need {req_cols}×{req_rows}, "
-                f"current {term.columns}×{term.lines}. Resize and try again."
-            )
-            sys.stdout.write(msg + "\n")
-            sys.stdout.flush()
-            # return msg
-
-        # Optionally clear before drawing
-        if self.clear_before:
-            os.system("cls" if os.name == "nt" else "clear")
+        # Check terminal width before drawing (only if printing to TTY)
+        if sys.stdout.isatty():
+            req_cols = self._required_size()
+            term = shutil.get_terminal_size(fallback=(80, 24))
+            if term.columns < req_cols:
+                msg = (
+                    "Terminal is too narrow: "
+                    f"{req_cols} cols are needed for rendering, "
+                    f"current width is {term.columns} cols. "
+                    "Resize and try again."
+                )
+                sys.stdout.write(msg + "\n")
+                sys.stdout.flush()
+                return
 
         revealed: set[Tuple[int, int]] = set()
-        for coord in seq:
+        for coord in self.path:
             revealed.add(coord)
             frame_lines = self._build_static_lines(reveal_path=revealed)
             frame_text = "\n".join(frame_lines)
             # Clear screen and print frame
-            if supports_cursor:
-                # ANSI clear+home is faster than external clear
-                sys.stdout.write("\x1b[H\x1b[2J\x1b[3J")
-                sys.stdout.flush()
-            else:
-                os.system("cls" if os.name == "nt" else "clear")
+            sys.stdout.write("\x1b[H\x1b[2J\x1b[3J")
+            sys.stdout.flush()
             sys.stdout.write(frame_text + "\n")
             sys.stdout.flush()
-            time.sleep(self.frame_delay)
+            time.sleep(0.05)
 
-        final = "\n".join(self._build_static_lines(reveal_path=set(seq)))
-        # ensure final is returned
-        return final
+        return
