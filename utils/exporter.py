@@ -1,5 +1,5 @@
 
-from mazegen.structs import Directions, Cell, Wall, MazeSpecs
+from mazegen.src.structs import Directions, Cell, Wall, MazeSpecs
 from typing import Iterator
 
 

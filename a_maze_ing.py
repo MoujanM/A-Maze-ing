@@ -1,10 +1,10 @@
 
 import sys
-from mazegen.structs import MazeSpecs
-from mazegen.graph import Graph
-from mazegen.generator import MazeGenerator
-from src.exporter import Exporter
-from src.ui import run_ui
+from mazegen.src.structs import MazeSpecs
+from mazegen.src.graph import Graph
+from mazegen.src.generator import MazeGenerator
+from utils.exporter import Exporter
+from utils.ui import run_ui
 
 
 def main() -> None:

@@ -2,7 +2,7 @@
 from pydantic import ValidationError
 from enum import Enum
 from typing import Any
-from mazegen.structs import MazeSpecs
+from mazegen.src.structs import MazeSpecs
 
 
 class Configs(Enum):

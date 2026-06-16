@@ -1,13 +1,13 @@
 import os
 
-from src.renderer import MazeRenderer
-from src.themes import DEFAULT_THEME, NEON_THEME, DARK_THEME
+from utils.renderer import MazeRenderer
+from utils.themes import DEFAULT_THEME, NEON_THEME, DARK_THEME
 
-from mazegen.structs import MazeSpecs, Cell
+from mazegen.src.structs import MazeSpecs, Cell
 
-from mazegen.graph import Graph
-from mazegen.generator import MazeGenerator
-from src.exporter import Exporter
+from mazegen.src.graph import Graph
+from mazegen.src.generator import MazeGenerator
+from utils.exporter import Exporter
 
 
 def clear_screen() -> None:

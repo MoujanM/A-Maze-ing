@@ -1,5 +1,5 @@
 
-from mazegen.structs import Wall, Cell, MazeSpecs
+from mazegen.src.structs import Wall, Cell, MazeSpecs
 import numpy as np
 
 

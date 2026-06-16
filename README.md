@@ -2,13 +2,13 @@
 
 # A-Maze-ing
 
-A sophisticated maze generator and solver that creates and navigates mazes using advanced graph algorithms. This project implements multiple maze generation algorithms and provides a modular, reusable architecture for maze-related operations.
+A modular maze-generation, solver, and visualizer programme. 
 
 ## Description
 
-A-Maze-ing is a Python-based maze generation and solving framework. It generates perfect or imperfect mazes of arbitrary dimensions and automatically solves them using graph traversal algorithms. The project demonstrates clean architecture principles with separation of concerns across multiple modules.
+A-Maze-ing is a Python-based maze generation and solving framework. Reading from a plain-text config file (or a python dictionary - see package documentation below), the program chooses between two algorithms to generate a perfect/imperfec maze, solves generated maze, renders visualization in the terminal, and writes result to a hex-encoded output file. The core generation logic is packaged as a standalone, pip-installable Python package (`mazegen`).
 
-### Key Features
+## Key Features
 
 - **Multiple Generation Algorithms**: Choose between Kruskal's algorithm (for perfect mazes) or Wilson's algorithm (for varied maze characteristics)
 - **Maze Solving**: Uses Breadth-First Search (BFS) to find the shortest path from entry to exit
@@ -16,81 +16,18 @@ A-Maze-ing is a Python-based maze generation and solving framework. It generates
 - **Graph-Based Representation**: Represents mazes as graphs with cells and walls
 - **Easter Egg**: Embeds the number "42" in the center of larger mazes as a fun detail
 - **Automated Output**: Exports solved mazes to text files with visual representation
+- **Interactive terminal UI**: Toggle path display, regenerate, and switch colour themes
+- **Reusable package**: `mazegen` can be imported independently or installed via pip
 
-## Project Structure
+## Instructions
+```bash
+make install    # install virtual env + all necessary dependencies
+make lint       # check code with flake8, mypy
+make run        # run a_maze_ing.py with a sample config file provided
 
+make clean      # find and remove caches
+make clean-venv # remove caches and delete virtual env
 ```
-A-Maze-ing/
-├── a_maze_ing.py          # Entry point and main orchestration
-├── sample_config.txt      # Example configuration file
-├── requirements.txt       # Python dependencies
-├── Makefile              # Build and run automation
-├── src/                  # Core utilities
-│   ├── graph.py          # Graph representation of the maze
-│   ├── parser.py         # Configuration file parsing and validation
-│   └── __init__.py
-├── maze/                 # Maze-specific algorithms and utilities
-│   ├── generator.py      # Maze generation algorithms
-│   ├── bfs.py           # Pathfinding algorithm
-│   ├── exporter.py      # Export maze to file
-│   ├── structs.py       # Data structures (Cell, Wall, MazeSpecs)
-│   ├── dsu.py           # Disjoint Set Union (Union-Find) data structure
-│   └── __init__.py
-└── tests/               # Test directory (for future test cases)
-```
-
-## Description of Algorithms
-
-### Kruskal's Algorithm (Perfect Mazes)
-
-Used when `PERFECT=True` in the configuration. This algorithm generates a "perfect maze" where there is exactly one path between any two cells.
-
-**How it works:**
-1. Start with all walls intact between cells
-2. Randomly shuffle all walls
-3. For each wall, check if the two cells it connects are in different sets (using DSU)
-4. If they are in different sets, remove the wall and union the sets
-5. Continue until all cells are connected
-6. The remaining walls form the maze structure
-
-**Characteristics:**
-- Generates perfect mazes (no loops, single solution path)
-- Uses the Disjoint Set Union (DSU/Union-Find) data structure for efficient connectivity checks
-- Deterministic given the same random seed
-
-### Wilson's Algorithm (Imperfect Mazes)
-
-Used when `PERFECT=False` in the configuration. This algorithm generates mazes with multiple paths and loops.
-
-**How it works:**
-1. Start with a random seed cell marked as visited
-2. While not all cells are visited:
-   - Pick a random unvisited cell
-   - Perform a random walk from that cell until hitting a visited cell
-   - Erase any loops in the walk path
-   - Add the walk path to the maze and mark all cells as visited
-3. Remove walls along the connections made by the walk
-
-**Characteristics:**
-- Generates mazes with varied characteristics
-- Can create imperfect mazes with multiple solutions
-- Produces mazes with different visual properties than Kruskal's
-
-### Breadth-First Search (BFS) - Maze Solving
-
-Finds the shortest path from entry to exit in the solved maze.
-
-**How it works:**
-1. Build an adjacency map from the maze walls (only open passages)
-2. Initialize a queue with the entry point
-3. Perform BFS traversal, tracking visited cells and the path taken
-4. When the exit is reached, backtrack through the "came_from" dictionary to reconstruct the path
-5. Return the solution as an ordered list of cells
-
-**Characteristics:**
-- Guarantees the shortest path
-- Time complexity: O(V + E) where V is cells and E is wall connections
-- Simple and efficient for maze solving
 
 ## Configuration File Structure
 
@@ -113,156 +50,94 @@ The `sample_config.txt` file defines maze specifications using a simple `KEY=VAL
 |-------|------|-------------|---------|
 | `SEED` | Integer | Random seed for reproducibility (≥ 1) | `42` |
 
-### Example Configuration
 
+# Mazegen Documentation; Project Algorithms
+
+`mazegen` offers high-performance maze generation utilizing two distinct algorithms depending on your desired topological outcome:
+
+**Kruskal's Algorithm** (`PERFECT=True`): Generates a mathematically perfect maze (a minimum spanning tree with exactly one unique path between any two points).
+
+**Wilson's Algorithm** (`PERFECT=False`): Generates an organic, imperfect loop-erased random walk maze, with uniform spanning tree properties.
+
+An integrated **Breadth-First Search (BFS)** pathfinder automatically solves the generated maze layout, finding a path between specified entry and exit coordinates.
+
+### Installallation
+
+To use mazegen package, install it in virtual env using the following command:
+
+```bash
+pip install mazegen-1.0.0-py3-none-any.whl
 ```
-# Sample configuration for a 10x10 maze
-WIDTH=10
-HEIGHT=10
-ENTRY=1,3
-EXIT=9,8
-OUTPUT_FILE=maze.txt
-PERFECT=False
+
+### Basic Usage
+
+You can instantiate `MazeGenerator` by passing it either a file path to a text configuration file containing key-value parameters, or passing parameters directly as a python dictionary.
+Note parameters `perfect` and `seed` are optional and can be ommitted.
+
+```bash
+# example of contents for a config.txt file
+WIDTH=15
+HEIGHT=15
+ENTRY=0,0
+EXIT=14,14
+OUTPUT_FILE=my_maze.txt
+PERFECT=True
+SEED=42
 ```
-
-### Validation Rules
-
-- Comments start with `#` and are ignored
-- Empty lines are ignored
-- Missing required keys raise a `ConfigError`
-- Invalid values are caught by Pydantic validators:
-  - Width and height must be ≥ 2
-  - Entry and exit coordinates must be non-negative and within maze bounds
-  - Entry and exit must be different points
-  - Output filename must end with `.txt`
-
-## Modularity and Reusability
-
-The project is designed with modularity as a core principle. Each component is independent and can be reused in different contexts.
-
-### Reusable Components
-
-#### 1. **Graph Module** (`src/graph.py`)
-
-**What it does:** Represents a maze as a graph of cells and walls.
-
-**Reusable for:**
-- Any grid-based pathfinding problem (tile-based games, robotics)
-- Building adjacency structures for graph algorithms
-- Creating visual representations of grid spaces
-
-**How to reuse:**
 ```python
-from src.graph import Graph
-from maze.structs import MazeSpecs
-
-specs = MazeSpecs(width=20, height=20, entry_point=(0, 0), 
-                   exit_point=(19, 19), output_name="test.txt")
-graph = Graph(specs)
-# Now you have a graph with cells and walls for other algorithms
+# example of a valid python dict
+custom_config = {
+    "width": 20,
+    "height": 20,
+    "perfect": True,
+    "entry_point": (0, 0),
+    "exit_point": (19, 19),
+    "seed": 42
+}
 ```
+Desired config can be passed directly to the contructor. The `MazeGenerator` class handles parsing, validation, layout generation, and path solving automagically upon instantiation.
 
-#### 2. **Parser Module** (`src/parser.py`)
-
-**What it does:** Parses and validates configuration files using Pydantic.
-
-**Reusable for:**
-- Parsing any `KEY=VALUE` configuration files
-- Other projects needing robust config validation with error messages
-- Building configuration systems with type safety
-
-**How to reuse:**
 ```python
-from src.parser import ConfigParser
+from mazegen.src.generator import MazeGenerator
 
-parser = ConfigParser()
-config = parser.read_txt("config.txt")
-validated_config = parser.validate_config(config)
-# Works with any KEY=VALUE configuration format
+# 1. Instantiate and execute the pipeline
+maze = MazeGenerator("config.txt")
+# alternatively maze = MazeGenerator(custom_config)
+
+# 2. Access the generated layout of standing walls
+walls = maze.maze_structure
+print(f"Generated maze with {len(walls)} standing walls.")
+
+# 3. Access the solved coordinates list (the path)
+path = maze.solution
+print(f"Solution path length: {len(path)} steps.")
+for cell in path[:5]:
+    print(f"Step: ({cell.x}, {cell.y})")
 ```
+### Access to Data Structures
 
-#### 3. **Generator Algorithms** (`maze/generator.py`)
+he package provides direct structural access to the underlying graph components via exposed read-only properties:
 
-**What it does:** Abstract base class with two concrete maze generation implementations.
+**`maze_structure`**
+Exposes a list[Wall] containing all remaining standing walls in the maze.
+Each Wall object connects two Cell instances:
 
-**Reusable for:**
-- Implementing other maze generation algorithms (Prim's, Recursive Backtracking, etc.)
-- Grid-based level generation in games
-- Procedural dungeon generation
-
-**How to reuse:**
 ```python
-from maze.generator import MazeGenerator, KruskalGenerator
-from src.graph import Graph
-
-class MyCustomGenerator(MazeGenerator):
-    def generate(self, graph: Graph):
-        # Implement your algorithm here
-        return your_maze_walls
-
-# Drop-in replacement for KruskalGenerator or WilsonGenerator
-generator = MyCustomGenerator()
-maze = generator.generate(graph)
+for wall in maze.maze_structure[:3]:
+    cell_a = wall.cell_a
+    cell_b = wall.cell_b
+    print(f"Wall stands between ({cell_a.x}, {cell_a.y}) and ({cell_b.x}, {cell_b.y})")
+    print(f"Is boundary wall? {wall.is_boundary}")
 ```
 
-#### 4. **BFS Solver** (`maze/bfs.py`)
+**`solution`**
+Exposes a list[Cell] representing the continuous sequence of cells starting at the entry cell and ending at the exit cell.
 
-**What it does:** Finds shortest paths in maze graphs.
-
-**Reusable for:**
-- Any graph pathfinding problem
-- Game AI pathfinding
-- Network routing
-- Robot navigation
-
-**How to reuse:**
 ```python
-from maze.bfs import BFS
-from src.graph import Graph
-
-solver = BFS(graph, maze_walls)
-path = solver.solve_maze(start_point, end_point)
-# Works on any connected graph with adjacency information
+# Print the exact coordinates traversed by the pathfinder
+path_coords = [(cell.x, cell.y) for cell in maze.solution]
+print("Solved Path:", " -> ".join(map(str, path_coords)))
 ```
-
-#### 5. **Data Structures** (`maze/structs.py`)
-
-**What it does:** Pydantic models and dataclasses for type-safe data.
-
-**Reusable for:**
-- Creating validated data structures for other projects
-- Building configuration systems with Pydantic
-- Ensuring data integrity through validation
-
-**How to reuse:**
-```python
-from maze.structs import Cell, Wall, MazeSpecs
-
-# Use in your own projects for type safety
-cell = Cell(x=5, y=10)
-wall = Wall(cell_a=cell1, cell_b=cell2)
-```
-
-#### 6. **DSU Module** (`maze/dsu.py`)
-
-**What it does:** Implements Union-Find data structure for efficient connectivity checking.
-
-**Reusable for:**
-- Detecting cycles in graphs
-- Network connectivity problems
-- Kruskal's algorithm for MST
-- Any problem requiring efficient set operations
-
-**How to reuse:**
-```python
-from maze.dsu import DSU
-
-cells = [...]
-dsu = DSU(cells)
-if not dsu.connected(cell_a, cell_b):
-    dsu.union(dsu.find(cell_a), dsu.find(cell_b))
-```
-
 ### Design Patterns Used
 
 - **Abstract Base Class Pattern**: `MazeGenerator` allows extending with new algorithms
@@ -270,101 +145,11 @@ if not dsu.connected(cell_a, cell_b):
 - **Validation with Pydantic**: Type-safe configuration handling
 - **Separation of Concerns**: Parser, graph, generators, and solvers are independent
 
-## Instructions
 
-### Prerequisites
 
-- Python 3.8+
-- pip (Python package manager)
 
-### Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/MoujanM/A-Maze-ing.git
-cd A-Maze-ing
-```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-Or use the Makefile:
-```bash
-make all
-```
-
-### Running the Program
-
-**Basic usage with default configuration:**
-```bash
-python a_maze_ing.py sample_config.txt
-```
-
-**Using the Makefile:**
-```bash
-make run
-```
-
-**Using the Makefile with custom configuration:**
-```bash
-make run CONFIG=your_config.txt
-```
-
-**Manual setup (if not using Makefile):**
-```bash
-python -m venv env
-source env/bin/activate  # On Windows: env\Scripts\activate
-pip install -r requirements.txt
-python a_maze_ing.py sample_config.txt
-```
-
-### Expected Output
-
-The program generates a maze and saves it to the specified `OUTPUT_FILE` in the configuration. The output contains:
-- Visual representation of the maze with walls
-- Marked entry and exit points
-- Solution path highlighted (typically with a different character)
-
-### Creating Your Own Configuration
-
-1. Copy `sample_config.txt` and modify the values:
-```bash
-cp sample_config.txt my_maze.txt
-```
-
-2. Edit the file with your desired parameters:
-```
-WIDTH=20
-HEIGHT=20
-ENTRY=2,2
-EXIT=18,18
-OUTPUT_FILE=my_maze.txt
-PERFECT=True
-```
-
-3. Run the program:
-```bash
-python a_maze_ing.py my_maze.txt
-```
-
-### Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| `FileNotFoundError` | Ensure the config file exists in the current directory |
-| `Validation failed` | Check config values match the required types and ranges |
-| `Entry/Exit point not found` | Verify entry/exit coordinates are within maze bounds |
-| Missing dependencies | Run `pip install -r requirements.txt` |
-
-## Resources
-
-### Dependencies
-
-- **pydantic**: Data validation using Python type hints
-- **numpy**: Numerical operations for maze grid representation
-- **Typing**: Type hints for Python (stdlib in Python 3.5+)
 
 ### Useful References
 

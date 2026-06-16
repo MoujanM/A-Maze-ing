@@ -1,11 +1,11 @@
 
 from typing import Any
-from mazegen.graph import Graph
-from mazegen.parser import ConfigParser
-from mazegen.structs import Wall, Cell, MazeSpecs
-from mazegen.strategies import AlgorithmStrategy
-from mazegen.strategies import KruskalGenerator, WilsonGenerator
-from mazegen.bfs import BFS
+from mazegen.src.graph import Graph
+from mazegen.src.parser import ConfigParser
+from mazegen.src.structs import Wall, Cell, MazeSpecs
+from mazegen.src.strategies import AlgorithmStrategy
+from mazegen.src.strategies import KruskalGenerator, WilsonGenerator
+from mazegen.src.bfs import BFS
 
 
 class MazeGenerator():

@@ -4,8 +4,8 @@ import os
 import shutil
 
 from typing import List, Tuple, Optional, Set
-from src.themes import Theme, DEFAULT_THEME
-from mazegen.structs import Cell
+from utils.themes import Theme, DEFAULT_THEME
+from mazegen.src.structs import Cell
 
 NORTH = 1
 EAST = 2

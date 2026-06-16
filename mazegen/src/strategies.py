@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import random
-from mazegen.structs import Wall, Cell, Directions
-from mazegen.graph import Graph
+from mazegen.src.structs import Wall, Cell, Directions
+from mazegen.src.graph import Graph
 
 
 class AlgorithmStrategy(ABC):
@@ -14,7 +14,7 @@ class AlgorithmStrategy(ABC):
 class KruskalGenerator(AlgorithmStrategy):
 
     def generate(self, graph: Graph) -> list[Wall]:
-        from mazegen.dsu import DSU
+        from mazegen.src.dsu import DSU
 
         maze_walls: list[Wall] = graph.walls.copy()
         active_cells: list[Cell] = [c for c in graph.cells if c.is_active]

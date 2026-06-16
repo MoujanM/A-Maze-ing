@@ -1,7 +1,7 @@
 VENV := maze_env
 PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
-REQ := src/requirements.txt
+REQ := utils/requirements.txt
 SCRIPT := a_maze_ing.py
 CONFIG ?= config.txt
 # VENVDONE := $(VENV)/.venv_created
@@ -36,6 +36,6 @@ clean-venv: clean
 
 lint:
 	@echo "Checking flake8 ..."
-	$(VENV)/bin/flake8 src/ mazegen/ $(SCRIPT)
+	$(VENV)/bin/flake8 utils/ mazegen/ $(SCRIPT)
 	@echo "Checking mypy ..."
-	$(VENV)/bin/mypy src/ mazegen/ $(SCRIPT) --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	$(VENV)/bin/mypy utils/ mazegen/ $(SCRIPT) --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

@@ -13,4 +13,4 @@ dependencies = ["pydantic", "numpy"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["mazegen*"]
+include = ["src"]

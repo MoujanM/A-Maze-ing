@@ -1,7 +1,7 @@
 
 from collections import deque
-from mazegen.structs import Cell, Wall
-from mazegen.graph import Graph
+from mazegen.src.structs import Cell, Wall
+from mazegen.src.graph import Graph
 
 
 class BFS():
